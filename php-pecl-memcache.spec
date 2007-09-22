@@ -118,7 +118,8 @@ fi
 %changelog
 * Sat Sep 22 2007 Remi Collet <Fedora@FamilleCollet.com> 2.2.0-1
 - new version
-- add new INI directives (hash_strategy + hash_function) to config.
+- add new INI directives (hash_strategy + hash_function) to config
+- add BR on php-devel >= 4.3.11 
 
 * Mon Aug 20 2007 Remi Collet <Fedora@FamilleCollet.com> 2.1.2-1
 - initial RPM
