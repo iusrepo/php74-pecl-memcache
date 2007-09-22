@@ -5,7 +5,7 @@
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      2.1.2
+Version:      2.2.0
 Release:      1%{?dist}
 License:      PHP
 Group:        Development/Languages
@@ -16,7 +16,7 @@ Source:       http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 Source2:      xml2changelog
 
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires: php-devel, php-pear, zlib-devel
+BuildRequires: php-devel >= 4.3.11, php-pear, zlib-devel
 Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
 Provides:     php-pecl(%{pecl_name}) = %{version}-%{release}
@@ -35,6 +35,7 @@ storing objects in memory.
 This extension allows you to work with memcached through
 handy OO and procedural interfaces.
 
+Memcache can be used as a PHP session handler.
 
 %prep 
 %setup -c -q
@@ -63,21 +64,21 @@ extension=%{pecl_name}.so
 
 ; Whether to transparently failover to other servers on errors
 ;memcache.allow_failover=1
-
 ; Defines how many servers to try when setting and getting data.
 ;memcache.max_failover_attempts=20
-
 ; Data will be transferred in chunks of this size
 ;memcache.chunk_size=8192
-
 ; The default TCP port number to use when connecting to the memcached server 
 ;memcache.default_port=11211
+; Hash function {crc32, fnv}
+;memcache.hash_function=crc32
+; Hash strategy {standard, consistent}
+;memcache.hash_strategy=standard
 
 ; Options to use the memcache session handler
 
 ; Use memcache as a session handler
 ;session.save_handler=memcache
-
 ; Defines a comma separated of server urls to use for session storage
 ;session.save_path="tcp://localhost:11211?persistent=1&weight=1&timeout=1&retry_interval=15"
 EOF
@@ -115,6 +116,10 @@ fi
 
 
 %changelog
+* Sat Sep 22 2007 Remi Collet <Fedora@FamilleCollet.com> 2.2.0-1
+- new version
+- add new INI directives (hash_strategy + hash_function) to config.
+
 * Mon Aug 20 2007 Remi Collet <Fedora@FamilleCollet.com> 2.1.2-1
 - initial RPM
 
