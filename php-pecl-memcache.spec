@@ -1,11 +1,12 @@
 %{!?__pecl:     %{expand: %%global __pecl     %{_bindir}/pecl}}
 %{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
+%global php_apiver  %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
 
 %define pecl_name memcache
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      2.2.0
+Version:      2.2.1
 Release:      1%{?dist}
 License:      PHP
 Group:        Development/Languages
@@ -116,6 +117,9 @@ fi
 
 
 %changelog
+* Thu Nov 01 2007 Remi Collet <Fedora@FamilleCollet.com> 2.2.1-1
+- new version
+
 * Sat Sep 22 2007 Remi Collet <Fedora@FamilleCollet.com> 2.2.0-1
 - new version
 - add new INI directives (hash_strategy + hash_function) to config
