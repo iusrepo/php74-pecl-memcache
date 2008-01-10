@@ -12,7 +12,8 @@ if ($xml['version'] >= "2"){ // Package.xml V 2.0
 		$xml->version->api, $xml->stability->api, 
 		$xml->date, $xml->notes);
 
-	if (is_array($xml->changelog->release)) foreach($xml->changelog->release as $rel)
+	if (isset($xml->changelog->release) && count($xml->changelog->release)) 
+	foreach($xml->changelog->release as $rel)
 		printf("* Version %s (%s) - API %s (%s) - %s\n\n%s\n\n",
 			$rel->version->release, $rel->stability->release, 
 			$rel->version->api, $rel->stability->api, 
