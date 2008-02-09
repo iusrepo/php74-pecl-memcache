@@ -6,7 +6,7 @@
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      2.2.2
+Version:      2.2.3
 Release:      1%{?dist}
 License:      PHP
 Group:        Development/Languages
@@ -117,6 +117,9 @@ fi
 
 
 %changelog
+* Sat Feb  9 2008 Remi Collet <Fedora@FamilleCollet.com> 2.2.3-1
+- new version
+
 * Thu Jan 10 2008 Remi Collet <Fedora@FamilleCollet.com> 2.2.2-1
 - new version
 
