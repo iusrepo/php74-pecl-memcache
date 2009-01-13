@@ -6,7 +6,7 @@
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      3.0.2
+Version:      3.0.3
 Release:      1%{?dist}
 License:      PHP
 Group:        Development/Languages
@@ -67,6 +67,8 @@ extension=%{pecl_name}.so
 ;memcache.allow_failover=1
 ;  Data will be transferred in chunks of this size
 ;memcache.chunk_size=32768
+;  Autocompress large data
+;memcache.compress_threshold=20000
 ;  The default TCP port number to use when connecting to the memcached server 
 ;memcache.default_port=11211
 ;  Hash function {crc32, fnv}
@@ -125,6 +127,9 @@ fi
 
 
 %changelog
+* Tue Jan 13 2009 Remi Collet <Fedora@FamilleCollet.com> 3.0.3-1
+- new version 3.0.3
+
 * Fri Sep 11 2008 Remi Collet <Fedora@FamilleCollet.com> 3.0.2-1
 - new version 3.0.2
 
