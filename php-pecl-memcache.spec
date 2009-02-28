@@ -6,8 +6,8 @@
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      3.0.3
-Release:      2%{?dist}
+Version:      3.0.4
+Release:      1%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
@@ -42,6 +42,8 @@ Memcache can be used as a PHP session handler.
 %setup -c -q
 %{_bindir}/php -n %{SOURCE2} package.xml >CHANGELOG
 
+# avoid spurious-executable-perm
+find . -type f -exec chmod -x {} \;
 
 %build
 cd %{pecl_name}-%{version}
@@ -83,7 +85,8 @@ extension=%{pecl_name}.so
 ;  Redundancy : When enabled the client sends requests to N servers in parallel
 ;memcache.redundancy=1
 ;memcache.session_redundancy=2
-
+;  Lock Timeout
+;memcache.lock_timeout = 15
 
 ; ----- Options to use the memcache session handler
 
@@ -127,8 +130,8 @@ fi
 
 
 %changelog
-* Thu Feb 26 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.0.3-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
+* Sat Feb 28 2009 Remi Collet <Fedora@FamilleCollet.com> 3.0.4-1
+- new version 3.0.4
 
 * Tue Jan 13 2009 Remi Collet <Fedora@FamilleCollet.com> 3.0.3-1
 - new version 3.0.3
