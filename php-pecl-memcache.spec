@@ -7,7 +7,7 @@
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.4
-Release:      1%{?dist}
+Release:      2%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
@@ -38,12 +38,14 @@ handy OO and procedural interfaces.
 
 Memcache can be used as a PHP session handler.
 
+
 %prep 
 %setup -c -q
 %{_bindir}/php -n %{SOURCE2} package.xml >CHANGELOG
 
 # avoid spurious-executable-perm
 find . -type f -exec chmod -x {} \;
+
 
 %build
 cd %{pecl_name}-%{version}
@@ -130,6 +132,9 @@ fi
 
 
 %changelog
+* Sun Jul 12 2009 Remi Collet <Fedora@FamilleCollet.com> 3.0.4-2
+- rebuild for new PHP 5.3.0 ABI (20090626)
+
 * Sat Feb 28 2009 Remi Collet <Fedora@FamilleCollet.com> 3.0.4-1
 - new version 3.0.4
 
