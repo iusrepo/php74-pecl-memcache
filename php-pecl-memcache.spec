@@ -2,7 +2,7 @@
 %{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
 %global php_apiver  %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
 
-%define pecl_name memcache
+%global pecl_name memcache
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
@@ -15,6 +15,9 @@ URL:          http://pecl.php.net/package/%{pecl_name}
 Source:       http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 
 Source2:      xml2changelog
+# http://pecl.php.net/bugs/bug.php?id=17566
+# http://svn.php.net/viewvc?view=revision&revision=300434
+Patch1:       memcache-17566.patch
 
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: php-devel >= 4.3.11, php-pear, zlib-devel
@@ -41,7 +44,9 @@ Memcache can be used as a PHP session handler.
 
 %prep 
 %setup -c -q
-%{_bindir}/php -n %{SOURCE2} package.xml >CHANGELOG
+%{_bindir}/php -n %{SOURCE2} package.xml | tee CHANGELOG | head -n 5
+
+%patch1 -p0 -b .17566
 
 # avoid spurious-executable-perm
 find . -type f -exec chmod -x {} \;
@@ -104,6 +109,15 @@ EOF
 %{__install} -m 644 ../package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
 
 
+%check
+cd %{pecl_name}-%{version}
+# simple module load test
+%{_bindir}/php --no-php-ini \
+    --define extension_dir=modules \
+    --define extension=%{pecl_name}.so \
+    --modules | grep %{pecl_name}
+
+
 %clean
 %{__rm} -rf %{buildroot}
 
@@ -132,6 +146,10 @@ fi
 
 
 %changelog
+* Thu Sep 30 2010 Remi Collet <Fedora@FamilleCollet.com> 3.0.4-4
+- patch for bug #599305 (upstream #17566)
+- add minimal load test in %%check
+
 * Sun Jul 26 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.0.4-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
 
