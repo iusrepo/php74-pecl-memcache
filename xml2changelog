@@ -13,16 +13,22 @@ if ($xml['version'] >= "2"){ // Package.xml V 2.0
 		$xml->date, $xml->notes);
 	$new=$xml->version->release;
 
-	if (isset($xml->changelog->release) && count($xml->changelog->release)) 
-	    foreach($xml->changelog->release as $rel) {
-		$old=$rel->version->release;
-		if ("$old" != "$new") {
-		    printf("*** Version %s (%s) - API %s (%s) - %s\n\n%s\n\n",
-			$rel->version->release, $rel->stability->release, 
-			$rel->version->api, $rel->stability->api, 
-			$rel->date, $rel->notes);
-		}
-	    }
+	if (isset($xml->changelog->release) && count($xml->changelog->release)) {
+		$tab = array();
+		foreach($xml->changelog->release as $rel) {
+			$old=$rel->version->release;
+			if ("$old" != "$new") {
+				$tab[''.$rel->date] = $rel;
+			}
+		}	
+		krsort($tab);
+		foreach($tab as $rel) {
+			printf("*** Version %s (%s) - API %s (%s) - %s\n\n%s\n\n",
+				$rel->version->release, $rel->stability->release, 
+				$rel->version->api, $rel->stability->api, 
+				$rel->date, $rel->notes);
+	    	}
+	}
 } else { // Package.xml V 1.0
 	printf("* Version %s (%s) - %s\n\n%s\n\n",
 		$xml->release->version, $xml->release->state, $xml->release->date, $xml->release->notes);

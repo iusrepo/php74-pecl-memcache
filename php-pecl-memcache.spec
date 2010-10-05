@@ -6,18 +6,14 @@
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      3.0.4
-Release:      4%{?dist}
+Version:      3.0.5
+Release:      1%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
 
 Source:       http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
-
 Source2:      xml2changelog
-# http://pecl.php.net/bugs/bug.php?id=17566
-# http://svn.php.net/viewvc?view=revision&revision=300434
-Patch1:       memcache-17566.patch
 
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: php-devel >= 4.3.11, php-pear, zlib-devel
@@ -45,8 +41,6 @@ Memcache can be used as a PHP session handler.
 %prep 
 %setup -c -q
 %{_bindir}/php -n %{SOURCE2} package.xml | tee CHANGELOG | head -n 5
-
-%patch1 -p0 -b .17566
 
 # avoid spurious-executable-perm
 find . -type f -exec chmod -x {} \;
@@ -146,6 +140,9 @@ fi
 
 
 %changelog
+* Tue Oct 05 2010 Remi Collet <Fedora@FamilleCollet.com> 3.0.5-1
+- update to 3.0.5
+
 * Thu Sep 30 2010 Remi Collet <Fedora@FamilleCollet.com> 3.0.4-4
 - patch for bug #599305 (upstream #17566)
 - add minimal load test in %%check
