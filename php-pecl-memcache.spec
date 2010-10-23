@@ -7,7 +7,7 @@
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.5
-Release:      1%{?dist}
+Release:      2%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
@@ -17,8 +17,13 @@ Source2:      xml2changelog
 
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: php-devel >= 4.3.11, php-pear, zlib-devel
+
+%if 0%{?pecl_install:1}
 Requires(post): %{__pecl}
+%endif
+%if 0%{?pecl_uninstall:1}
 Requires(postun): %{__pecl}
+%endif
 Provides:     php-pecl(%{pecl_name}) = %{version}-%{release}
 %if %{?php_zend_api}0
 Requires:     php(zend-abi) = %{php_zend_api}
@@ -26,6 +31,13 @@ Requires:     php(api) = %{php_core_api}
 %else
 Requires:     php-api = %{php_apiver}
 %endif
+
+
+%{?filter_setup:
+%filter_provides_in %{php_extdir}/.*\.so$
+%filter_setup
+}
+
 
 %description
 Memcached is a caching daemon designed especially for
@@ -140,6 +152,9 @@ fi
 
 
 %changelog
+* Sat Oct 23 2010  Remi Collet <Fedora@FamilleCollet.com> 3.0.5-2
+- add filter_provides to avoid private-shared-object-provides memcache.so
+
 * Tue Oct 05 2010 Remi Collet <Fedora@FamilleCollet.com> 3.0.5-1
 - update to 3.0.5
 
