@@ -7,11 +7,14 @@ $file=array_shift($_SERVER['argv']);
 if (in_array("--debug", $_SERVER['argv'])) print_r($xml);
 
 if ($xml['version'] >= "2"){ // Package.xml V 2.0
-	printf("*** Version %s (%s) - API %s (%s) - %s\n\n%s\n\n",
-		$xml->version->release, $xml->stability->release, 
-		$xml->version->api, $xml->stability->api, 
-		$xml->date, $xml->notes);
-	$new=$xml->version->release;
+	$new = "";
+	if (strlen(trim($xml->notes))>1) { // Ignore too short descr.
+		printf("++*** Version %s (%s) - API %s (%s) - %s\n\n%s\n\n",
+			$xml->version->release, $xml->stability->release,
+			$xml->version->api, $xml->stability->api,
+			$xml->date, $xml->notes);
+		$new=$xml->version->release;
+	}
 
 	if (isset($xml->changelog->release) && count($xml->changelog->release)) {
 		$tab = array();
@@ -20,7 +23,7 @@ if ($xml['version'] >= "2"){ // Package.xml V 2.0
 			if ("$old" != "$new") {
 				$tab[''.$rel->date] = $rel;
 			}
-		}	
+		}
 		krsort($tab);
 		foreach($tab as $rel) {
 			printf("*** Version %s (%s) - API %s (%s) - %s\n\n%s\n\n",

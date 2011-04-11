@@ -6,8 +6,8 @@
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      3.0.5
-Release:      3%{?dist}
+Version:      3.0.6
+Release:      1%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
@@ -25,7 +25,7 @@ Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
 %endif
 Provides:     php-pecl(%{pecl_name}) = %{version}-%{release}
-%if %{?php_zend_api}0
+%if 0%{?php_zend_api:1}
 Requires:     php(zend-abi) = %{php_zend_api}
 Requires:     php(api) = %{php_core_api}
 %else
@@ -152,6 +152,9 @@ fi
 
 
 %changelog
+* Mon Apr 11 2011 Remi Collet <Fedora@FamilleCollet.com> 3.0.6-1
+- update to 3.0.6
+
 * Wed Feb 09 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.0.5-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 
