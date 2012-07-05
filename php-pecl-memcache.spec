@@ -7,16 +7,19 @@
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.6
-Release:      3%{?dist}
+Release:      4%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
 
 Source:       http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 Source2:      xml2changelog
+Source3:      LICENSE
 
 # https://bugs.php.net/60284
 Patch0:       memcache-php54.patch
+Patch1:       php-pecl-memcache-3.0.6-fdcast.patch
+Patch2:       php-pecl-memcache-3.0.5-get-mem-corrupt.patch
 
 BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: php-devel >= 4.3.11, php-pear, zlib-devel
@@ -59,8 +62,14 @@ Memcache can be used as a PHP session handler.
 %setup -c -q
 
 %patch0 -p0 -b .php54
+pushd memcache-%{version}
+%patch1 -p1 -b .fdcast
+%patch2 -p1 -b .get-mem-corrupt.patch
+popd
 
 %{_bindir}/php -n %{SOURCE2} package.xml | tee CHANGELOG | head -n 5
+
+cp -p %{SOURCE3} .
 
 cat >%{pecl_name}.ini << 'EOF'
 ; ----- Enable %{pecl_name} extension module
@@ -151,7 +160,7 @@ fi
 
 %files
 %defattr(-, root, root, -)
-%doc CHANGELOG %{pecl_name}-%{version}/CREDITS %{pecl_name}-%{version}/README 
+%doc CHANGELOG %{pecl_name}-%{version}/CREDITS %{pecl_name}-%{version}/README LICENSE
 %doc %{pecl_name}-%{version}/example.php %{pecl_name}-%{version}/memcache.php
 %config(noreplace) %{_sysconfdir}/php.d/%{pecl_name}.ini
 %{php_extdir}/%{pecl_name}.so
@@ -159,6 +168,11 @@ fi
 
 
 %changelog
+* Thu Jul  5 2012 Joe Orton <jorton@redhat.com> - 3.0.6-4
+- fix php_stream_cast() usage
+- fix memory corruption after unserialization (Paul Clifford)
+- package license
+
 * Thu Jan 19 2012 Remi Collet <remi@fedoraproject.org> - 3.0.6-3
 - rebuild against PHP 5.4, with patch
 - fix filters
