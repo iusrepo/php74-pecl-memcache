@@ -1,50 +1,37 @@
 %{!?__pecl:     %{expand: %%global __pecl     %{_bindir}/pecl}}
-%{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
-%global php_apiver  %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
 
 %global pecl_name memcache
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      3.0.6
-Release:      5%{?dist}
+Version:      3.0.7
+Release:      1%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
 
 Source:       http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 Source2:      xml2changelog
+# https://bugs.php.net/63141
 Source3:      LICENSE
 
-# https://bugs.php.net/60284
-Patch0:       memcache-php54.patch
-Patch1:       php-pecl-memcache-3.0.6-fdcast.patch
+# https://bugs.php.net/63142
 Patch2:       php-pecl-memcache-3.0.5-get-mem-corrupt.patch
 
-BuildRoot:    %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires: php-devel >= 4.3.11, php-pear, zlib-devel
+BuildRequires: php-devel, php-pear, zlib-devel
 
-%if 0%{?pecl_install:1}
 Requires(post): %{__pecl}
-%endif
-%if 0%{?pecl_uninstall:1}
 Requires(postun): %{__pecl}
-%endif
-Provides:     php-pecl(%{pecl_name}) = %{version}-%{release}
-%if 0%{?php_zend_api:1}
 Requires:     php(zend-abi) = %{php_zend_api}
 Requires:     php(api) = %{php_core_api}
-%else
-Requires:     php-api = %{php_apiver}
-%endif
 
-# RPM 4.8
+Provides:     php-pecl(%{pecl_name}) = %{version}
+Provides:     php-pecl(%{pecl_name})%{_isa} = %{version}
+
+# Filter private shared
 %{?filter_provides_in: %filter_provides_in %{php_extdir}/.*\.so$}
 %{?filter_provides_in: %filter_provides_in %{php_ztsextdir}/.*\.so$}
 %{?filter_setup}
-# RPM 4.9
-%global __provides_exclude_from %{?__provides_exclude_from:%__provides_exclude_from|}%{php_extdir}/.*\\.so$
-%global __provides_exclude_from %__provides_exclude_from|%{php_ztsextdir}/.*\\.so$
 
 
 %description
@@ -61,10 +48,16 @@ Memcache can be used as a PHP session handler.
 %prep 
 %setup -c -q
 
-%patch0 -p0 -b .php54
-pushd memcache-%{version}
-%patch1 -p1 -b .fdcast
+pushd %{pecl_name}-%{version}
 %patch2 -p1 -b .get-mem-corrupt.patch
+
+# Chech version as upstream often forget to update this
+extver=$(sed -n '/#define PHP_MEMCACHE_VERSION/{s/.* "//;s/".*$//;p}' php_memcache.h)
+if test "x${extver}" != "x%{version}"; then
+   : Error: Upstream version is now ${extver}, expecting %{version}.
+   : Update the pdover macro and rebuild.
+   exit 1
+fi
 popd
 
 %{_bindir}/php -n %{SOURCE2} package.xml | tee CHANGELOG | head -n 5
@@ -76,6 +69,7 @@ cat >%{pecl_name}.ini << 'EOF'
 extension=%{pecl_name}.so
 
 ; ----- Options for the %{pecl_name} module
+; see http://www.php.net/manual/en/memcache.ini.php
 
 ;  Whether to transparently failover to other servers on errors
 ;memcache.allow_failover=1
@@ -108,9 +102,6 @@ extension=%{pecl_name}.so
 ;session.save_path="tcp://localhost:11211?persistent=1&weight=1&timeout=1&retry_interval=15"
 EOF
 
-# avoid spurious-executable-perm
-find . -type f -exec chmod -x {} \;
-
 
 %build
 cd %{pecl_name}-%{version}
@@ -120,7 +111,6 @@ make %{?_smp_mflags}
 
 
 %install
-rm -rf %{buildroot}
 make -C %{pecl_name}-%{version} \
      install INSTALL_ROOT=%{buildroot}
 
@@ -140,26 +130,17 @@ cd %{pecl_name}-%{version}
     --modules | grep %{pecl_name}
 
 
-%clean
-rm -rf %{buildroot}
-
-
-%if 0%{?pecl_install:1}
 %post
 %{pecl_install} %{pecl_xmldir}/%{name}.xml >/dev/null || :
-%endif
 
 
-%if 0%{?pecl_uninstall:1}
 %postun
 if [ $1 -eq 0 ] ; then
     %{pecl_uninstall} %{pecl_name} >/dev/null || :
 fi
-%endif
 
 
 %files
-%defattr(-, root, root, -)
 %doc CHANGELOG %{pecl_name}-%{version}/CREDITS %{pecl_name}-%{version}/README LICENSE
 %doc %{pecl_name}-%{version}/example.php %{pecl_name}-%{version}/memcache.php
 %config(noreplace) %{_sysconfdir}/php.d/%{pecl_name}.ini
@@ -168,6 +149,11 @@ fi
 
 
 %changelog
+* Sun Sep 23 2012 Remi Collet <remi@fedoraproject.org> - 3.0.7-1
+- update to 3.0.7
+- drop patches merged upstream
+- cleanup spec
+
 * Sat Jul 21 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.0.6-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
 
