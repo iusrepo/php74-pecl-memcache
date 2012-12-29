@@ -5,7 +5,7 @@
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.7
-Release:      4%{?dist}
+Release:      5%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
@@ -16,10 +16,16 @@ Source2:      xml2changelog
 Source3:      LICENSE
 
 # https://bugs.php.net/63142
-# http://svn.php.net/viewvc/pecl/memcache/branches/NON_BLOCKING_IO/memcache_pool.c?r1=327754&r2=327753&pathrev=327754
-Patch2:       php-pecl-memcache-3.0.5-get-mem-corrupt.patch
+# http://svn.php.net/viewvc?view=revision&revision=327754
+Patch1:       %{name}-3.0.5-get-mem-corrupt.patch
 
-BuildRequires: php-devel, php-pear, zlib-devel
+# https://bugs.php.net/59602
+# http://svn.php.net/viewvc?view=revision&revision=328202
+Patch2:       %{name}-3.0.7-bug59602.patch
+
+BuildRequires: php-devel
+BuildRequires: php-pear
+BuildRequires: zlib-devel
 
 Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
@@ -28,6 +34,8 @@ Requires:     php(api) = %{php_core_api}
 
 Provides:     php-pecl(%{pecl_name}) = %{version}
 Provides:     php-pecl(%{pecl_name})%{?_isa} = %{version}
+Provides:     php-%{pecl_name} = %{version}
+Provides:     php-%{pecl_name}%{?_isa} = %{version}
 
 # Filter private shared
 %{?filter_provides_in: %filter_provides_in %{_libdir}/.*\.so$}
@@ -49,7 +57,8 @@ Memcache can be used as a PHP session handler.
 %setup -c -q
 
 pushd %{pecl_name}-%{version}
-%patch2 -p1 -b .get-mem-corrupt.patch
+%patch1 -p1 -b .get-mem-corrupt.patch
+%patch2 -p4 -b .bug54602
 
 # Chech version as upstream often forget to update this
 extver=$(sed -n '/#define PHP_MEMCACHE_VERSION/{s/.* "//;s/".*$//;p}' php_memcache.h)
@@ -60,7 +69,7 @@ if test "x${extver}" != "x%{version}"; then
 fi
 popd
 
-%{_bindir}/php -n %{SOURCE2} package.xml | tee CHANGELOG | head -n 5
+%{_bindir}/php %{SOURCE2} package.xml | tee CHANGELOG | head -n 5
 
 cp -p %{SOURCE3} .
 
@@ -153,6 +162,11 @@ fi
 
 
 %changelog
+* Fri Dec 29 2012 Remi Collet <remi@fedoraproject.org> - 3.0.7-5
+- add patch for https://bugs.php.net/59602
+  segfault in getExtendedStats
+- also provides php-memcache
+
 * Fri Oct 19 2012 Remi Collet <remi@fedoraproject.org> - 3.0.7-4
 - improve comment in configuration about session.
 
