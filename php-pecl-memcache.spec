@@ -1,31 +1,32 @@
+%{!?php_inidir: %{expand: %%global php_inidir %{_sysconfdir}/php.d}}
+%{!?__php:      %{expand: %%global __php      %{_bindir}/php}}
 %{!?__pecl:     %{expand: %%global __pecl     %{_bindir}/pecl}}
 
+%global with_zts  0%{?__ztsphp:1}
 %global pecl_name memcache
+# Not ready, some failed UDP tests. Neded investigation.
+%global with_tests %{?_with_tests:1}%{!?_with_tests:0}
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      3.0.7
-Release:      7%{?dist}
+Version:      3.0.8
+Release:      1%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
 
 Source:       http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 Source2:      xml2changelog
-# https://bugs.php.net/63141
-Source3:      LICENSE
-
-# https://bugs.php.net/63142
-# http://svn.php.net/viewvc?view=revision&revision=327754
-Patch1:       %{name}-3.0.5-get-mem-corrupt.patch
-
-# https://bugs.php.net/59602
-# http://svn.php.net/viewvc?view=revision&revision=328202
-Patch2:       %{name}-3.0.7-bug59602.patch
+# Missing in official archive
+# http://svn.php.net/viewvc/pecl/memcache/branches/NON_BLOCKING_IO/tests/connect.inc?view=co
+Source3:      connect.inc
 
 BuildRequires: php-devel
 BuildRequires: php-pear
 BuildRequires: zlib-devel
+%if %{with_tests}
+BuildRequires: memcached
+%endif
 
 Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
@@ -57,8 +58,6 @@ Memcache can be used as a PHP session handler.
 %setup -c -q
 
 pushd %{pecl_name}-%{version}
-%patch1 -p1 -b .get-mem-corrupt.patch
-%patch2 -p4 -b .bug54602
 
 # Chech version as upstream often forget to update this
 extver=$(sed -n '/#define PHP_MEMCACHE_VERSION/{s/.* "//;s/".*$//;p}' php_memcache.h)
@@ -69,9 +68,7 @@ if test "x${extver}" != "x%{version}"; then
 fi
 popd
 
-%{_bindir}/php %{SOURCE2} package.xml | tee CHANGELOG | head -n 5
-
-cp -p %{SOURCE3} .
+%{__php} %{SOURCE2} package.xml | tee CHANGELOG | head -n 8
 
 cat >%{pecl_name}.ini << 'EOF'
 ; ----- Enable %{pecl_name} extension module
@@ -115,12 +112,23 @@ extension=%{pecl_name}.so
 ;session.save_path="tcp://localhost:11211?persistent=1&weight=1&timeout=1&retry_interval=15"
 EOF
 
+%if %{with_zts}
+cp -r %{pecl_name}-%{version} %{pecl_name}-%{version}-zts
+%endif
+
 
 %build
 cd %{pecl_name}-%{version}
-phpize
-%configure
+%{_bindir}/phpize
+%configure --with-php-config=%{_bindir}/php-config
 make %{?_smp_mflags}
+
+%if %{with_zts}
+cd ../%{pecl_name}-%{version}-zts
+%{_bindir}/zts-phpize
+%configure --with-php-config=%{_bindir}/zts-php-config
+make %{?_smp_mflags}
+%endif
 
 
 %install
@@ -128,19 +136,59 @@ make -C %{pecl_name}-%{version} \
      install INSTALL_ROOT=%{buildroot}
 
 # Drop in the bit of configuration
-install -D -m 644 %{pecl_name}.ini %{buildroot}%{_sysconfdir}/php.d/%{pecl_name}.ini
+install -D -m 644 %{pecl_name}.ini %{buildroot}%{php_inidir}/%{pecl_name}.ini
+
+%if %{with_zts}
+make -C %{pecl_name}-%{version}-zts \
+     install INSTALL_ROOT=%{buildroot}
+
+install -D -m 644 %{pecl_name}.ini %{buildroot}%{php_ztsinidir}/%{pecl_name}.ini
+%endif
 
 # Install XML package description
 install -Dpm 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
 
 
 %check
-cd %{pecl_name}-%{version}
 # simple module load test
-%{_bindir}/php --no-php-ini \
-    --define extension_dir=%{buildroot}%{php_extdir} \
+%{__php} --no-php-ini \
+    --define extension_dir=%{pecl_name}-%{version}/modules \
     --define extension=%{pecl_name}.so \
     --modules | grep %{pecl_name}
+
+%if %{with_zts}
+%{__ztsphp} --no-php-ini \
+    --define extension_dir=%{pecl_name}-%{version}-zts/modules \
+    --define extension=%{pecl_name}.so \
+    --modules | grep %{pecl_name}
+%endif
+
+%if %{with_tests}
+cd %{pecl_name}-%{version}
+cp %{SOURCE3} tests
+sed -e "s:/var/run/memcached/memcached.sock:$PWD/memcached.sock:" \
+    -i tests/connect.inc
+
+# Launch the daemons
+memcached -p 11211 -U 11211      -d -P $PWD/memcached1.pid
+memcached -p 11212 -U 11212      -d -P $PWD/memcached2.pid
+memcached -s $PWD/memcached.sock -d -P $PWD/memcached3.pid
+
+# Run the test Suite
+ret=0
+TEST_PHP_EXECUTABLE=%{_bindir}/php \
+TEST_PHP_ARGS="-n -d extension_dir=$PWD/modules -d extension=%{pecl_name}.so" \
+NO_INTERACTION=1 \
+REPORT_EXIT_STATUS=1 \
+%{_bindir}/php -n run-tests.php || ret=1
+
+# Cleanup
+if [ -f memcached2.pid ]; then
+   kill $(cat memcached?.pid)
+fi
+
+exit $ret
+%endif
 
 
 %post
@@ -154,14 +202,24 @@ fi
 
 
 %files
-%doc CHANGELOG %{pecl_name}-%{version}/CREDITS %{pecl_name}-%{version}/README LICENSE
+%doc CHANGELOG %{pecl_name}-%{version}/{CREDITS,README,LICENSE}
 %doc %{pecl_name}-%{version}/example.php %{pecl_name}-%{version}/memcache.php
-%config(noreplace) %{_sysconfdir}/php.d/%{pecl_name}.ini
-%{php_extdir}/%{pecl_name}.so
 %{pecl_xmldir}/%{name}.xml
+%config(noreplace) %{php_inidir}/%{pecl_name}.ini
+%{php_extdir}/%{pecl_name}.so
+
+%if %{with_zts}
+%config(noreplace) %{php_ztsinidir}/%{pecl_name}.ini
+%{php_ztsextdir}/%{pecl_name}.so
+%endif
+
 
 
 %changelog
+* Mon Apr 08 2013 Remi Collet <remi@fedoraproject.org> - 3.0.8-1
+- Update to 3.0.8
+- enable conditional ZTS extension build
+
 * Fri Mar 22 2013 Remi Collet <rcollet@redhat.com> - 3.0.7-7
 - rebuild for http://fedoraproject.org/wiki/Features/Php55
 
