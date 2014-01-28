@@ -229,7 +229,7 @@ fi
 * Thu Feb 14 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.0.7-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 
-* Fri Dec 29 2012 Remi Collet <remi@fedoraproject.org> - 3.0.7-5
+* Sat Dec 29 2012 Remi Collet <remi@fedoraproject.org> - 3.0.7-5
 - add patch for https://bugs.php.net/59602
   segfault in getExtendedStats
 - also provides php-memcache
@@ -292,10 +292,10 @@ fi
 * Tue Jan 13 2009 Remi Collet <Fedora@FamilleCollet.com> 3.0.3-1
 - new version 3.0.3
 
-* Fri Sep 11 2008 Remi Collet <Fedora@FamilleCollet.com> 3.0.2-1
+* Thu Sep 11 2008 Remi Collet <Fedora@FamilleCollet.com> 3.0.2-1
 - new version 3.0.2
 
-* Fri Sep 11 2008 Remi Collet <Fedora@FamilleCollet.com> 2.2.4-1
+* Thu Sep 11 2008 Remi Collet <Fedora@FamilleCollet.com> 2.2.4-1
 - new version 2.2.4 (bug fixes)
 
 * Sat Feb  9 2008 Remi Collet <Fedora@FamilleCollet.com> 2.2.3-1
