@@ -1,22 +1,34 @@
-%{!?php_inidir: %{expand: %%global php_inidir %{_sysconfdir}/php.d}}
-%{!?__php:      %{expand: %%global __php      %{_bindir}/php}}
-%{!?__pecl:     %{expand: %%global __pecl     %{_bindir}/pecl}}
+# spec file for php-pecl-memcache
+#
+# Copyright (c) 2007-2014 Remi Collet
+# License: CC-BY-SA
+# http://creativecommons.org/licenses/by-sa/3.0/
+#
+# Please, preserve the changelog entries
+#
+%{!?php_inidir:  %global php_inidir   %{_sysconfdir}/php.d}
+%{!?__pecl:      %global __pecl       %{_bindir}/pecl}
+%{!?__php:       %global __php        %{_bindir}/php}
 
-%global with_zts  0%{?__ztsphp:1}
-%global pecl_name memcache
+%global pecl_name  memcache
 # Not ready, some failed UDP tests. Neded investigation.
 %global with_tests %{?_with_tests:1}%{!?_with_tests:0}
+%global with_zts   0%{?__ztsphp:1}
+%if 0%{?fedora} < 21
+%global ini_name  %{pecl_name}.ini
+%else
+%global ini_name  40-%{pecl_name}.ini
+%endif
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.8
-Release:      2%{?dist}
+Release:      3%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
 
 Source:       http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
-Source2:      xml2changelog
 # Missing in official archive
 # http://svn.php.net/viewvc/pecl/memcache/branches/NON_BLOCKING_IO/tests/connect.inc?view=co
 Source3:      connect.inc
@@ -38,9 +50,11 @@ Provides:     php-pecl(%{pecl_name})%{?_isa} = %{version}
 Provides:     php-%{pecl_name} = %{version}
 Provides:     php-%{pecl_name}%{?_isa} = %{version}
 
-# Filter private shared
+%if 0%{?fedora} < 20 && 0%{?rhel} < 7
+# Filter shared private
 %{?filter_provides_in: %filter_provides_in %{_libdir}/.*\.so$}
 %{?filter_setup}
+%endif
 
 
 %description
@@ -57,7 +71,8 @@ Memcache can be used as a PHP session handler.
 %prep 
 %setup -c -q
 
-pushd %{pecl_name}-%{version}
+mv %{pecl_name}-%{version} NTS
+pushd NTS
 
 # Chech version as upstream often forget to update this
 extver=$(sed -n '/#define PHP_MEMCACHE_VERSION/{s/.* "//;s/".*$//;p}' php_memcache.h)
@@ -68,9 +83,7 @@ if test "x${extver}" != "x%{version}"; then
 fi
 popd
 
-%{__php} %{SOURCE2} package.xml | tee CHANGELOG | head -n 8
-
-cat >%{pecl_name}.ini << 'EOF'
+cat >%{ini_name} << 'EOF'
 ; ----- Enable %{pecl_name} extension module
 extension=%{pecl_name}.so
 
@@ -113,18 +126,18 @@ extension=%{pecl_name}.so
 EOF
 
 %if %{with_zts}
-cp -r %{pecl_name}-%{version} %{pecl_name}-%{version}-zts
+cp -r NTS ZTS
 %endif
 
 
 %build
-cd %{pecl_name}-%{version}
+cd NTS
 %{_bindir}/phpize
 %configure --with-php-config=%{_bindir}/php-config
 make %{?_smp_mflags}
 
 %if %{with_zts}
-cd ../%{pecl_name}-%{version}-zts
+cd ../ZTS
 %{_bindir}/zts-phpize
 %configure --with-php-config=%{_bindir}/zts-php-config
 make %{?_smp_mflags}
@@ -132,49 +145,55 @@ make %{?_smp_mflags}
 
 
 %install
-make -C %{pecl_name}-%{version} \
-     install INSTALL_ROOT=%{buildroot}
+make -C NTS install INSTALL_ROOT=%{buildroot}
 
 # Drop in the bit of configuration
-install -D -m 644 %{pecl_name}.ini %{buildroot}%{php_inidir}/%{pecl_name}.ini
+install -D -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
 
 %if %{with_zts}
-make -C %{pecl_name}-%{version}-zts \
-     install INSTALL_ROOT=%{buildroot}
+make -C ZTS install INSTALL_ROOT=%{buildroot}
 
-install -D -m 644 %{pecl_name}.ini %{buildroot}%{php_ztsinidir}/%{pecl_name}.ini
+install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
 %endif
 
 # Install XML package description
 install -Dpm 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
 
+# Test & Documentation
+for i in $(grep 'role="test"' package.xml | sed -e 's/^.*name="//;s/".*$//')
+do install -Dpm 644 NTS/$i %{buildroot}%{pecl_testdir}/%{pecl_name}/$i
+done
+for i in $(grep 'role="doc"' package.xml | sed -e 's/^.*name="//;s/".*$//')
+do install -Dpm 644 NTS/$i %{buildroot}%{pecl_docdir}/%{pecl_name}/$i
+done
+
 
 %check
-# simple module load test
+: Minimal load test for NTS extension
 %{__php} --no-php-ini \
-    --define extension_dir=%{pecl_name}-%{version}/modules \
-    --define extension=%{pecl_name}.so \
-    --modules | grep %{pecl_name}
+    --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
+    -m | grep %{pecl_name}
 
 %if %{with_zts}
+: Minimal load test for ZTS extension
 %{__ztsphp} --no-php-ini \
-    --define extension_dir=%{pecl_name}-%{version}-zts/modules \
-    --define extension=%{pecl_name}.so \
-    --modules | grep %{pecl_name}
+    --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
+    -m | grep %{pecl_name}
 %endif
 
 %if %{with_tests}
-cd %{pecl_name}-%{version}
+: Configuration for tests
+cd NTS
 cp %{SOURCE3} tests
 sed -e "s:/var/run/memcached/memcached.sock:$PWD/memcached.sock:" \
     -i tests/connect.inc
 
-# Launch the daemons
+: Launch the daemons
 memcached -p 11211 -U 11211      -d -P $PWD/memcached1.pid
 memcached -p 11212 -U 11212      -d -P $PWD/memcached2.pid
 memcached -s $PWD/memcached.sock -d -P $PWD/memcached3.pid
 
-# Run the test Suite
+: Upstream test suite for NTS extension
 ret=0
 TEST_PHP_EXECUTABLE=%{_bindir}/php \
 TEST_PHP_ARGS="-n -d extension_dir=$PWD/modules -d extension=%{pecl_name}.so" \
@@ -182,7 +201,7 @@ NO_INTERACTION=1 \
 REPORT_EXIT_STATUS=1 \
 %{_bindir}/php -n run-tests.php || ret=1
 
-# Cleanup
+: Cleanup
 if [ -f memcached2.pid ]; then
    kill $(cat memcached?.pid)
 fi
@@ -202,20 +221,25 @@ fi
 
 
 %files
-%doc CHANGELOG %{pecl_name}-%{version}/{CREDITS,README,LICENSE}
-%doc %{pecl_name}-%{version}/example.php %{pecl_name}-%{version}/memcache.php
+%doc %{pecl_docdir}/%{pecl_name}
+%doc %{pecl_testdir}/%{pecl_name}
 %{pecl_xmldir}/%{name}.xml
-%config(noreplace) %{php_inidir}/%{pecl_name}.ini
+%config(noreplace) %{php_inidir}/%{ini_name}
 %{php_extdir}/%{pecl_name}.so
 
 %if %{with_zts}
-%config(noreplace) %{php_ztsinidir}/%{pecl_name}.ini
+%config(noreplace) %{php_ztsinidir}/%{ini_name}
 %{php_ztsextdir}/%{pecl_name}.so
 %endif
 
 
 
 %changelog
+* Thu Apr 24 2014 Remi Collet <rcollet@redhat.com> - 3.0.8-3
+- add numerical prefix to extension configuration file
+- install doc in pecl_docdir
+- install tests in pecl_testdir
+
 * Sun Aug 04 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.0.8-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
 
