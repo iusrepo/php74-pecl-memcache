@@ -14,7 +14,7 @@
 # Not ready, some failed UDP tests. Neded investigation.
 %global with_tests %{?_with_tests:1}%{!?_with_tests:0}
 %global with_zts   0%{?__ztsphp:1}
-%if 0%{?fedora} < 21
+%if "%{php_version}" < "5.6"
 %global ini_name  %{pecl_name}.ini
 %else
 %global ini_name  40-%{pecl_name}.ini
@@ -23,7 +23,7 @@
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.8
-Release:      4%{?dist}
+Release:      5%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
@@ -235,6 +235,9 @@ fi
 
 
 %changelog
+* Thu Jun 19 2014 Remi Collet <rcollet@redhat.com> - 3.0.8-5
+- rebuild for https://fedoraproject.org/wiki/Changes/Php56
+
 * Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.0.8-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
 
