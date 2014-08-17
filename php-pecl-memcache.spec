@@ -23,7 +23,7 @@
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.8
-Release:      5%{?dist}
+Release:      6%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
@@ -235,6 +235,9 @@ fi
 
 
 %changelog
+* Sun Aug 17 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.0.8-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
 * Thu Jun 19 2014 Remi Collet <rcollet@redhat.com> - 3.0.8-5
 - rebuild for https://fedoraproject.org/wiki/Changes/Php56
 
