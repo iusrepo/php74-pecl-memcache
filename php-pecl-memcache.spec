@@ -1,29 +1,21 @@
-# spec file for php-pecl-memcache
+# Fedora spec file for php-pecl-memcache
 #
-# Copyright (c) 2007-2015 Remi Collet
+# Copyright (c) 2007-2016 Remi Collet
 # License: CC-BY-SA
 # http://creativecommons.org/licenses/by-sa/3.0/
 #
 # Please, preserve the changelog entries
 #
-%{!?php_inidir:  %global php_inidir   %{_sysconfdir}/php.d}
-%{!?__pecl:      %global __pecl       %{_bindir}/pecl}
-%{!?__php:       %global __php        %{_bindir}/php}
-
 %global pecl_name  memcache
 # Not ready, some failed UDP tests. Neded investigation.
-%global with_tests %{?_with_tests:1}%{!?_with_tests:0}
+%global with_tests 0%{?_with_tests:1}
 %global with_zts   0%{?__ztsphp:1}
-%if "%{php_version}" < "5.6"
-%global ini_name  %{pecl_name}.ini
-%else
 %global ini_name  40-%{pecl_name}.ini
-%endif
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.8
-Release:      9%{?dist}
+Release:      10%{?dist}
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
@@ -42,8 +34,6 @@ BuildRequires: zlib-devel
 BuildRequires: memcached
 %endif
 
-Requires(post): %{__pecl}
-Requires(postun): %{__pecl}
 Requires:     php(zend-abi) = %{php_zend_api}
 Requires:     php(api) = %{php_core_api}
 
@@ -51,12 +41,6 @@ Provides:     php-pecl(%{pecl_name}) = %{version}
 Provides:     php-pecl(%{pecl_name})%{?_isa} = %{version}
 Provides:     php-%{pecl_name} = %{version}
 Provides:     php-%{pecl_name}%{?_isa} = %{version}
-
-%if 0%{?fedora} < 20 && 0%{?rhel} < 7
-# Filter shared private
-%{?filter_provides_in: %filter_provides_in %{_libdir}/.*\.so$}
-%{?filter_setup}
-%endif
 
 
 %description
@@ -213,16 +197,6 @@ exit $ret
 %endif
 
 
-%post
-%{pecl_install} %{pecl_xmldir}/%{name}.xml >/dev/null || :
-
-
-%postun
-if [ $1 -eq 0 ] ; then
-    %{pecl_uninstall} %{pecl_name} >/dev/null || :
-fi
-
-
 %files
 %doc %{pecl_docdir}/%{pecl_name}
 %doc %{pecl_testdir}/%{pecl_name}
@@ -238,6 +212,10 @@ fi
 
 
 %changelog
+* Wed Feb 10 2016 Remi Collet <remi@fedoraproject.org> - 3.0.8-10
+- drop scriptlets (replaced by file triggers in php-pear)
+- cleanup
+
 * Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 3.0.8-9
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
 
