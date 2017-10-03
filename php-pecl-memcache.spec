@@ -7,11 +7,11 @@
 # Please, preserve the changelog entries
 #
 # https://github.com/websupport-sk/pecl-memcache/commits/NON_BLOCKING_IO_php7
-%global gh_commit   4991c2fff22d00dc81014cc92d2da7077ef4bc86
+%global gh_commit   df7735e813d247ea141458e1774d163ad4e2d068
 %global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
 %global gh_owner    websupport-sk
 %global gh_project  pecl-memcache
-%global gh_date     20160311
+%global gh_date     20161124
 %global pecl_name  memcache
 # Not ready, some failed UDP tests. Neded investigation.
 %global with_tests 0%{?_with_tests:1}
@@ -22,7 +22,7 @@ Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.9
 %if 0%{?gh_date:1}
-Release:      0.5.%{gh_date}git%{gh_short}%{?dist}
+Release:      0.6.%{gh_date}git%{gh_short}%{?dist}
 %else
 Release:      5%{?dist}
 %endif
@@ -234,6 +234,9 @@ exit $ret
 
 
 %changelog
+* Tue Oct  3 2017 Remi Collet <remi@remirepo.net> - 3.0.9-0.6.20161124gitdf7735e
+- refresh
+
 * Thu Aug 03 2017 Fedora Release Engineering <releng@fedoraproject.org> - 3.0.9-0.5.20160311git4991c2f
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
 
