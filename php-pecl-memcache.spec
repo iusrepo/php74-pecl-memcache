@@ -7,11 +7,11 @@
 # Please, preserve the changelog entries
 #
 # https://github.com/websupport-sk/pecl-memcache/commits/NON_BLOCKING_IO_php7
-%global gh_commit   df7735e813d247ea141458e1774d163ad4e2d068
+%global gh_commit   e702b5f91ec222e20d1d5cea0ffc6be012992d70
 %global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
 %global gh_owner    websupport-sk
 %global gh_project  pecl-memcache
-%global gh_date     20161124
+%global gh_date     20170802
 %global pecl_name  memcache
 # Not ready, some failed UDP tests. Neded investigation.
 %global with_tests 0%{?_with_tests:1}
@@ -22,19 +22,17 @@ Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.9
 %if 0%{?gh_date:1}
-Release:      0.6.%{gh_date}git%{gh_short}%{?dist}
+Release:      0.7.%{gh_date}.%{gh_short}%{?dist}
+Source0:      https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
 %else
 Release:      5%{?dist}
+Source0:      http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 %endif
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
 
-%if 0%{?gh_date:1}
-Source0:      https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
-%else
-Source0:      http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
-%endif
+Patch0:       %{pecl_name}-session.patch
 
 BuildRequires: php-devel
 BuildRequires: php-pear
@@ -84,6 +82,7 @@ sed -e 's/role="test"/role="src"/' \
     -i package.xml
 
 pushd NTS
+%patch0 -p1 -b .gh23
 
 # Chech version as upstream often forget to update this
 dir=php$(%{__php} -r 'echo PHP_MAJOR_VERSION;')
@@ -234,6 +233,10 @@ exit $ret
 
 
 %changelog
+* Fri Oct  6 2017 Remi Collet <remi@remirepo.net> - 3.0.9-0.7.20170802.e702b5f
+- refresh to more recent snapshot
+- add patch from https://github.com/websupport-sk/pecl-memcache/issues/23
+
 * Tue Oct  3 2017 Remi Collet <remi@remirepo.net> - 3.0.9-0.6.20161124gitdf7735e
 - refresh
 
