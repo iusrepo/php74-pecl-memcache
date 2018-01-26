@@ -1,11 +1,15 @@
 # Fedora spec file for php-pecl-memcache
 #
-# Copyright (c) 2007-2016 Remi Collet
+# Copyright (c) 2007-2018 Remi Collet
 # License: CC-BY-SA
 # http://creativecommons.org/licenses/by-sa/3.0/
 #
 # Please, preserve the changelog entries
 #
+
+# we don't want -z defs linker flag
+%undefine _strict_symbol_defs_build
+
 # https://github.com/websupport-sk/pecl-memcache/commits/NON_BLOCKING_IO_php7
 %global gh_commit   e702b5f91ec222e20d1d5cea0ffc6be012992d70
 %global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
@@ -22,7 +26,7 @@ Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      3.0.9
 %if 0%{?gh_date:1}
-Release:      0.7.%{gh_date}.%{gh_short}%{?dist}
+Release:      0.8.%{gh_date}.%{gh_short}%{?dist}
 Source0:      https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
 %else
 Release:      5%{?dist}
@@ -233,6 +237,9 @@ exit $ret
 
 
 %changelog
+* Fri Jan 26 2018 Remi Collet <remi@remirepo.net> - 3.0.9-0.8.20170802.e702b5f
+- undefine _strict_symbol_defs_build
+
 * Fri Oct  6 2017 Remi Collet <remi@remirepo.net> - 3.0.9-0.7.20170802.e702b5f
 - refresh to more recent snapshot
 - add patch from https://github.com/websupport-sk/pecl-memcache/issues/23
