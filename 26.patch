@@ -1,3 +1,12 @@
+From 4a9e4ab0d12150805feca3012854de9fd4e5a721 Mon Sep 17 00:00:00 2001
+From: Remi Collet <remi@remirepo.net>
+Date: Fri, 6 Oct 2017 12:08:28 +0200
+Subject: [PATCH] Fix #23 Failed to read session data with 7.1/7.2
+
+---
+ php7/memcache_session.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/php7/memcache_session.c b/php7/memcache_session.c
 index dd2434a..45ba97d 100644
 --- a/php7/memcache_session.c
