@@ -33,7 +33,6 @@ Release:      8%{?dist}
 Source0:      http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
 %endif
 License:      PHP
-Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
 
 Patch0:       https://patch-diff.githubusercontent.com/raw/websupport-sk/pecl-memcache/pull/26.patch
