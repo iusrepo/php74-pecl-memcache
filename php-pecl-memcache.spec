@@ -1,6 +1,6 @@
 # Fedora spec file for php-pecl-memcache
 #
-# Copyright (c) 2007-2018 Remi Collet
+# Copyright (c) 2007-2019 Remi Collet
 # License: CC-BY-SA
 # http://creativecommons.org/licenses/by-sa/3.0/
 #
@@ -11,11 +11,12 @@
 %undefine _strict_symbol_defs_build
 
 # https://github.com/websupport-sk/pecl-memcache/commits/NON_BLOCKING_IO_php7
-%global gh_commit   e702b5f91ec222e20d1d5cea0ffc6be012992d70
+%global gh_commit   ddda96f7bfa0f0bba9ffb6974215ced8a1b80010
 %global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
 %global gh_owner    websupport-sk
 %global gh_project  pecl-memcache
-%global gh_date     20170802
+%global gh_date     20190319
+#global prever      dev
 %global pecl_name  memcache
 # Not ready, some failed UDP tests. Neded investigation.
 %global with_tests 0%{?_with_tests:1}
@@ -24,20 +25,21 @@
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      3.0.9
+Version:      4.0.2
 %if 0%{?gh_date:1}
-Release:      0.12.%{gh_date}.%{gh_short}%{?dist}
-Source0:      https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
+Release:      0.11.%{gh_date}.%{gh_short}%{?dist}
 %else
-Release:      9%{?dist}
-Source0:      http://pecl.php.net/get/%{pecl_name}-%{version}.tgz
+Release:      1%{?dist}
 %endif
+Source0:      https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
 License:      PHP
+Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
 
-Patch0:       https://patch-diff.githubusercontent.com/raw/websupport-sk/pecl-memcache/pull/26.patch
-Patch1:       https://patch-diff.githubusercontent.com/raw/websupport-sk/pecl-memcache/pull/30.patch
+Patch0:       https://patch-diff.githubusercontent.com/raw/websupport-sk/pecl-memcache/pull/40.patch
+Patch1:       https://patch-diff.githubusercontent.com/raw/websupport-sk/pecl-memcache/pull/45.patch
 
+BuildRequires: gcc
 BuildRequires: php-devel
 BuildRequires: php-pear
 BuildRequires: zlib-devel
@@ -67,13 +69,13 @@ Memcache can be used as a PHP session handler.
 
 %prep 
 %setup -c -q
-%if 0%{?gh_date:1}
+%if 1
 mv %{gh_project}-%{gh_commit} NTS
 %{__php} -r '
   $pkg = simplexml_load_file("NTS/package.xml");
   $pkg->date = substr("%{gh_date}",0,4)."-".substr("%{gh_date}",4,2)."-".substr("%{gh_date}",6,2);
-  $pkg->version->release = "%{version}dev";
-  $pkg->stability->release = "devel";
+  $pkg->version->release = "%{version}%{?prever}";
+  $pkg->stability->release = "%{?prever}%{!?prever:stable}";
   $pkg->asXML("package.xml");
 '
 %else
@@ -86,14 +88,14 @@ sed -e 's/role="test"/role="src"/' \
     -i package.xml
 
 pushd NTS
-%patch0 -p1 -b .gh26
-%patch1 -p1 -b .gh30
+%patch0 -p1 -b .gh40
+%patch1 -p1 -b .gh45
 
 # Chech version as upstream often forget to update this
 dir=php$(%{__php} -r 'echo PHP_MAJOR_VERSION;')
 extver=$(sed -n '/#define PHP_MEMCACHE_VERSION/{s/.* "//;s/".*$//;p}' $dir/php_memcache.h)
-if test "x${extver}" != "x%{version}%{?gh_date:-dev}"; then
-   : Error: Upstream version is now ${extver}, expecting %{version}.
+if test "x${extver}" != "x%{version}%{?prever:-%{prever}}"; then
+   : Error: Upstream version is now ${extver}, expecting %{version}%{?prever:-%{prever}}
    : Update the pdover macro and rebuild.
    exit 1
 fi
@@ -129,6 +131,11 @@ extension=%{pecl_name}.so
 ;  Lock Timeout
 ;memcache.lock_timeout = 15
 
+;memcache.prefix_host_key = 0
+;memcache.prefix_host_key_remove_www = 1
+;memcache.prefix_host_key_remove_subdomain = 0
+;memcache.prefix_static_key = ''
+
 ; ----- Options to use the memcache session handler
 
 ; RPM note : save_handler and save_path are defined
@@ -138,7 +145,13 @@ extension=%{pecl_name}.so
 ;  Use memcache as a session handler
 ;session.save_handler=memcache
 ;  Defines a comma separated of server urls to use for session storage
+;  Only used when memcache.session_save_path is not set
 ;session.save_path="tcp://localhost:11211?persistent=1&weight=1&timeout=1&retry_interval=15"
+;memcache.session_prefix_host_key = 0
+;memcache.session_prefix_host_key_remove_www = 1
+;memcache.session_prefix_host_key_remove_subdomain = 0
+;memcache.session_prefix_static_key = ''
+;memcache.session_save_path = ''
 EOF
 
 %if %{with_zts}
@@ -197,9 +210,11 @@ done
 %if %{with_tests}
 : Configuration for tests
 cd NTS
-cp %{SOURCE3} tests
 sed -e "s:/var/run/memcached/memcached.sock:$PWD/memcached.sock:" \
     -i tests/connect.inc
+
+: Udp tests
+rm tests/0{35,40,44,53}.phpt tests/bug73539.phpt
 
 : Launch the daemons
 memcached -p 11211 -U 11211      -d -P $PWD/memcached1.pid
@@ -238,6 +253,13 @@ exit $ret
 
 
 %changelog
+* Tue Mar 19 2019 Remi Collet <remi@remirepo.net> - 4.0.2-1
+- update to 4.0.2 from https://github.com/websupport-sk/pecl-memcache
+- add patch for PHP < 7.2 from
+  https://github.com/websupport-sk/pecl-memcache/pull/40
+- add patch to allow session.save_path from
+  https://github.com/websupport-sk/pecl-memcache/pull/45
+
 * Sat Feb 02 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.0.9-0.12.20170802.e702b5f
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
 
