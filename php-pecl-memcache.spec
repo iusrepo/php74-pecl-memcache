@@ -26,7 +26,7 @@
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      4.0.2
-%if 0%{?gh_date:1}
+%if 0%{?prever:1}
 Release:      0.11.%{gh_date}.%{gh_short}%{?dist}
 %else
 Release:      1%{?dist}
