@@ -11,7 +11,7 @@
 %undefine _strict_symbol_defs_build
 
 # https://github.com/websupport-sk/pecl-memcache/commits/NON_BLOCKING_IO_php7
-%global gh_commit   ddda96f7bfa0f0bba9ffb6974215ced8a1b80010
+%global gh_commit   f8bd3e76fcdf5c5599b24f83d176d108ab12925a
 %global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
 %global gh_owner    websupport-sk
 %global gh_project  pecl-memcache
@@ -25,7 +25,7 @@
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      4.0.2
+Version:      4.0.3
 %if 0%{?prever:1}
 Release:      0.11.%{gh_date}.%{gh_short}%{?dist}
 %else
@@ -35,9 +35,6 @@ Source0:      https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/
 License:      PHP
 Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
-
-Patch0:       https://patch-diff.githubusercontent.com/raw/websupport-sk/pecl-memcache/pull/40.patch
-Patch1:       https://patch-diff.githubusercontent.com/raw/websupport-sk/pecl-memcache/pull/45.patch
 
 BuildRequires: gcc
 BuildRequires: php-devel
@@ -88,11 +85,11 @@ sed -e 's/role="test"/role="src"/' \
     -i package.xml
 
 pushd NTS
-%patch0 -p1 -b .gh40
-%patch1 -p1 -b .gh45
-
 # Chech version as upstream often forget to update this
 dir=php$(%{__php} -r 'echo PHP_MAJOR_VERSION;')
+
+sed -e 's/4.0.2/%{version}/' -i $dir/php_memcache.h
+
 extver=$(sed -n '/#define PHP_MEMCACHE_VERSION/{s/.* "//;s/".*$//;p}' $dir/php_memcache.h)
 if test "x${extver}" != "x%{version}%{?prever:-%{prever}}"; then
    : Error: Upstream version is now ${extver}, expecting %{version}%{?prever:-%{prever}}
@@ -213,9 +210,6 @@ cd NTS
 sed -e "s:/var/run/memcached/memcached.sock:$PWD/memcached.sock:" \
     -i tests/connect.inc
 
-: Udp tests
-rm tests/0{35,40,44,53}.phpt tests/bug73539.phpt
-
 : Launch the daemons
 memcached -p 11211 -U 11211      -d -P $PWD/memcached1.pid
 memcached -p 11212 -U 11212      -d -P $PWD/memcached2.pid
@@ -253,6 +247,11 @@ exit $ret
 
 
 %changelog
+* Mon Mar 25 2019 Remi Collet <remi@remirepo.net> - 4.0.3-1
+- update to 4.0.3
+- drop patches merged upstream
+- open https://github.com/websupport-sk/pecl-memcache/pull/48 version
+
 * Tue Mar 19 2019 Remi Collet <remi@remirepo.net> - 4.0.2-1
 - update to 4.0.2 from https://github.com/websupport-sk/pecl-memcache
 - add patch for PHP < 7.2 from
