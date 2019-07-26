@@ -27,9 +27,9 @@ Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
 Version:      4.0.3
 %if 0%{?prever:1}
-Release:      0.11.%{gh_date}.%{gh_short}%{?dist}
+Release:      0.12.%{gh_date}.%{gh_short}%{?dist}
 %else
-Release:      1%{?dist}
+Release:      2%{?dist}
 %endif
 Source0:      https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
 License:      PHP
@@ -247,6 +247,9 @@ exit $ret
 
 
 %changelog
+* Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.0.3-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
 * Mon Mar 25 2019 Remi Collet <remi@remirepo.net> - 4.0.3-1
 - update to 4.0.3
 - drop patches merged upstream
