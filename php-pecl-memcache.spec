@@ -11,7 +11,7 @@
 %undefine _strict_symbol_defs_build
 
 # https://github.com/websupport-sk/pecl-memcache/commits/NON_BLOCKING_IO_php7
-%global gh_commit   f8bd3e76fcdf5c5599b24f83d176d108ab12925a
+%global gh_commit   837d86f8e579ac6d73631841b3bd24f391de62ce
 %global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
 %global gh_owner    websupport-sk
 %global gh_project  pecl-memcache
@@ -25,11 +25,11 @@
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      4.0.3
+Version:      4.0.4
 %if 0%{?prever:1}
 Release:      0.12.%{gh_date}.%{gh_short}%{?dist}
 %else
-Release:      2%{?dist}
+Release:      1%{?dist}
 %endif
 Source0:      https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
 License:      PHP
@@ -37,7 +37,7 @@ Group:        Development/Languages
 URL:          http://pecl.php.net/package/%{pecl_name}
 
 BuildRequires: gcc
-BuildRequires: php-devel
+BuildRequires: php-devel > 7
 BuildRequires: php-pear
 BuildRequires: zlib-devel
 %if %{with_tests}
@@ -247,6 +247,9 @@ exit $ret
 
 
 %changelog
+* Thu Oct  3 2019 Remi Collet <remi@remirepo.net> - 4.0.4-1
+- update to 4.0.4
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 4.0.3-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
