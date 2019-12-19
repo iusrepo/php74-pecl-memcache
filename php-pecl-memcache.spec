@@ -12,13 +12,13 @@
 
 %global pecl_name  memcache
 # Not ready, some failed UDP tests. Neded investigation.
-%global with_tests 0%{?_with_tests:1}
+%global with_tests 0%{!?_without_tests:1}
 %global with_zts   0%{?__ztsphp:1}
 %global ini_name  40-%{pecl_name}.ini
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      4.0.5
+Version:      4.0.5.1
 Release:      1%{?dist}
 Source0:      https://pecl.php.net/get/%{pecl_name}-%{version}%{?prever}.tgz
 License:      PHP
@@ -64,7 +64,6 @@ sed -e 's/role="test"/role="src"/' \
 
 pushd NTS
 # Check version as upstream often forget to update this
-sed -e '/PHP_MEMCACHE_VERSION/s/4.0.4/4.0.5/' -i */php_memcache.h
 
 dir=php$(%{__php} -r 'echo PHP_MAJOR_VERSION;')
 extver=$(sed -n '/#define PHP_MEMCACHE_VERSION/{s/.* "//;s/".*$//;p}' $dir/php_memcache.h)
@@ -224,6 +223,10 @@ exit $ret
 
 
 %changelog
+* Thu Dec 19 2019 Remi Collet <remi@remirepo.net> - 4.0.5.1-1
+- update to 4.0.5.1 (no change)
+- enable test suite
+
 * Thu Dec 19 2019 Remi Collet <remi@remirepo.net> - 4.0.5-1
 - update to 4.0.5
 - switch back to sources from PECL
