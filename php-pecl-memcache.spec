@@ -181,8 +181,12 @@ done
 %endif
 
 %if %{with_tests}
-: Configuration for tests
 cd NTS
+: ignore test with erratic results
+rm tests/040.phpt
+rm tests/056.phpt
+
+: Configuration for tests
 sed -e "s:/var/run/memcached/memcached.sock:$PWD/memcached.sock:" \
     -i tests/connect.inc
 
@@ -197,7 +201,7 @@ TEST_PHP_EXECUTABLE=%{_bindir}/php \
 TEST_PHP_ARGS="-n -d extension_dir=$PWD/modules -d extension=%{pecl_name}.so" \
 NO_INTERACTION=1 \
 REPORT_EXIT_STATUS=1 \
-%{_bindir}/php -n run-tests.php || ret=1
+%{_bindir}/php -n run-tests.php --show-diff || ret=1
 
 : Cleanup
 if [ -f memcached2.pid ]; then
