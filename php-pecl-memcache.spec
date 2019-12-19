@@ -10,13 +10,6 @@
 # we don't want -z defs linker flag
 %undefine _strict_symbol_defs_build
 
-# https://github.com/websupport-sk/pecl-memcache/commits/NON_BLOCKING_IO_php7
-%global gh_commit   837d86f8e579ac6d73631841b3bd24f391de62ce
-%global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
-%global gh_owner    websupport-sk
-%global gh_project  pecl-memcache
-%global gh_date     20190319
-#global prever      dev
 %global pecl_name  memcache
 # Not ready, some failed UDP tests. Neded investigation.
 %global with_tests 0%{?_with_tests:1}
@@ -25,16 +18,12 @@
 
 Summary:      Extension to work with the Memcached caching daemon
 Name:         php-pecl-memcache
-Version:      4.0.4
-%if 0%{?prever:1}
-Release:      0.12.%{gh_date}.%{gh_short}%{?dist}
-%else
+Version:      4.0.5
 Release:      1%{?dist}
-%endif
-Source0:      https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{pecl_name}-%{version}-%{gh_short}.tar.gz
+Source0:      https://pecl.php.net/get/%{pecl_name}-%{version}%{?prever}.tgz
 License:      PHP
 Group:        Development/Languages
-URL:          http://pecl.php.net/package/%{pecl_name}
+URL:          https://pecl.php.net/package/%{pecl_name}
 
 BuildRequires: gcc
 BuildRequires: php-devel > 7
@@ -66,18 +55,7 @@ Memcache can be used as a PHP session handler.
 
 %prep 
 %setup -c -q
-%if 1
-mv %{gh_project}-%{gh_commit} NTS
-%{__php} -r '
-  $pkg = simplexml_load_file("NTS/package.xml");
-  $pkg->date = substr("%{gh_date}",0,4)."-".substr("%{gh_date}",4,2)."-".substr("%{gh_date}",6,2);
-  $pkg->version->release = "%{version}%{?prever}";
-  $pkg->stability->release = "%{?prever}%{!?prever:stable}";
-  $pkg->asXML("package.xml");
-'
-%else
 mv %{pecl_name}-%{version} NTS
-%endif
 
 # Don't install/register tests
 sed -e 's/role="test"/role="src"/' \
@@ -85,11 +63,10 @@ sed -e 's/role="test"/role="src"/' \
     -i package.xml
 
 pushd NTS
-# Chech version as upstream often forget to update this
+# Check version as upstream often forget to update this
+sed -e '/PHP_MEMCACHE_VERSION/s/4.0.4/4.0.5/' -i */php_memcache.h
+
 dir=php$(%{__php} -r 'echo PHP_MAJOR_VERSION;')
-
-sed -e 's/4.0.2/%{version}/' -i $dir/php_memcache.h
-
 extver=$(sed -n '/#define PHP_MEMCACHE_VERSION/{s/.* "//;s/".*$//;p}' $dir/php_memcache.h)
 if test "x${extver}" != "x%{version}%{?prever:-%{prever}}"; then
    : Error: Upstream version is now ${extver}, expecting %{version}%{?prever:-%{prever}}
@@ -247,6 +224,10 @@ exit $ret
 
 
 %changelog
+* Thu Dec 19 2019 Remi Collet <remi@remirepo.net> - 4.0.5-1
+- update to 4.0.5
+- switch back to sources from PECL
+
 * Thu Oct  3 2019 Remi Collet <remi@remirepo.net> - 4.0.4-1
 - update to 4.0.4
 
