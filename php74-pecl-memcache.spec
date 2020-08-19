@@ -1,4 +1,4 @@
-# Fedora spec file for php-pecl-memcache
+# Fedora spec file for php74-pecl-memcache
 #
 # Copyright (c) 2007-2020 Remi Collet
 # License: CC-BY-SA
@@ -10,6 +10,7 @@
 # we don't want -z defs linker flag
 %undefine _strict_symbol_defs_build
 
+%global php        php74
 %global pecl_name  memcache
 # Not ready, some failed UDP tests. Neded investigation.
 %global with_tests 0%{!?_without_tests:1}
@@ -17,17 +18,17 @@
 %global ini_name  40-%{pecl_name}.ini
 
 Summary:      Extension to work with the Memcached caching daemon
-Name:         php-pecl-memcache
+Name:         %{php}-pecl-memcache
 Version:      4.0.5.2
-Release:      3%{?dist}
+Release:      4%{?dist}
 Source0:      https://pecl.php.net/get/%{pecl_name}-%{version}%{?prever}.tgz
 License:      PHP
 Group:        Development/Languages
 URL:          https://pecl.php.net/package/%{pecl_name}
 
 BuildRequires: gcc
-BuildRequires: php-devel > 7
-BuildRequires: php-pear
+BuildRequires: %{php}-devel
+BuildRequires: pear1
 BuildRequires: zlib-devel
 %if %{with_tests}
 BuildRequires: memcached
@@ -36,10 +37,12 @@ BuildRequires: memcached
 Requires:     php(zend-abi) = %{php_zend_api}
 Requires:     php(api) = %{php_core_api}
 
-Provides:     php-pecl(%{pecl_name}) = %{version}
-Provides:     php-pecl(%{pecl_name})%{?_isa} = %{version}
+Provides:     php-pecl(%{pecl_name}) = %{version}-%{release}
+Provides:     php-pecl(%{pecl_name})%{?_isa} = %{version}-%{release}
 Provides:     php-%{pecl_name} = %{version}
 Provides:     php-%{pecl_name}%{?_isa} = %{version}
+
+Conflicts:    php-pecl(%{pecl_name}) < %{version}-%{release}
 
 
 %description
@@ -54,7 +57,7 @@ Memcache can be used as a PHP session handler.
 
 
 %prep 
-%setup -c -q
+%setup -c -q -n php-pecl-memcache-%{version}
 mv %{pecl_name}-%{version} NTS
 
 # Don't install/register tests
@@ -227,6 +230,9 @@ exit $ret
 
 
 %changelog
+* Wed Aug 19 2020 Kerry Vance <kerryavance@gmail.com> - 4.0.5.2-4
+- Port from Fedora to IUS
+
 * Sat Aug 01 2020 Fedora Release Engineering <releng@fedoraproject.org> - 4.0.5.2-3
 - Second attempt - Rebuilt for
   https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
@@ -433,4 +439,3 @@ exit $ret
 
 * Mon Aug 20 2007 Remi Collet <Fedora@FamilleCollet.com> 2.1.2-1
 - initial RPM
-
