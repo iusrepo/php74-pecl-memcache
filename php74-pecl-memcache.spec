@@ -45,7 +45,10 @@ Provides:     php-pecl(%{pecl_name})%{?_isa} = %{version}
 Provides:     php-%{pecl_name} = %{version}
 Provides:     php-%{pecl_name}%{?_isa} = %{version}
 
-Conflicts:    php-pecl(%{pecl_name}) < %{version}-%{release}
+# safe replacement
+Provides:     php-pecl-%{pecl_name} = %{version}-%{release}
+Provides:     php-pecl-%{pecl_name}%{?_isa} = %{version}-%{release}
+Conflicts:    php-pecl-%{pecl_name} < %{version}-%{release}
 
 
 %description
@@ -235,6 +238,7 @@ exit $ret
 * Wed Oct 14 2020 Carl George <carl@george.computer> - 4.0.5.2-5
 - Build require pear1's dependencies to avoid mismatched php stacks
 - Remove release from php-pecl() provides
+- Add safe replacement provides/conflicts
 
 * Wed Aug 19 2020 Kerry Vance <kerryavance@gmail.com> - 4.0.5.2-4
 - Port from Fedora to IUS
