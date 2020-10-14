@@ -1,6 +1,7 @@
 task:
   only_if: $CIRRUS_TAG == ''
   env:
+    USER: root
     RELEASEVER: 7
   name: el$RELEASEVER
   container:
