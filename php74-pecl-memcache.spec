@@ -22,7 +22,7 @@
 Summary:      Extension to work with the Memcached caching daemon
 Name:         %{php}-pecl-memcache
 Version:      4.0.5.2
-Release:      5%{?dist}
+Release:      6%{?dist}
 Source0:      https://pecl.php.net/get/%{pecl_name}-%{version}%{?prever}.tgz
 License:      PHP
 Group:        Development/Languages
@@ -62,7 +62,7 @@ handy OO and procedural interfaces.
 Memcache can be used as a PHP session handler.
 
 
-%prep 
+%prep
 %setup -c -q
 mv %{pecl_name}-%{version} NTS
 
@@ -96,7 +96,7 @@ extension=%{pecl_name}.so
 ;memcache.chunk_size=32768
 ;  Autocompress large data
 ;memcache.compress_threshold=20000
-;  The default TCP port number to use when connecting to the memcached server 
+;  The default TCP port number to use when connecting to the memcached server
 ;memcache.default_port=11211
 ;  Hash function {crc32, fnv}
 ;memcache.hash_function=crc32
@@ -200,9 +200,9 @@ sed -e "s:/var/run/memcached/memcached.sock:$PWD/memcached.sock:" \
     -i tests/connect.inc
 
 : Launch the daemons
-memcached -u memcached -p 11211 -U 11211      -d -P $PWD/memcached1.pid
-memcached -u memcached -p 11212 -U 11212      -d -P $PWD/memcached2.pid
-memcached -u memcached -s $PWD/memcached.sock -d -P $PWD/memcached3.pid
+memcached -u $USER -p 11211 -U 11211      -d -P $PWD/memcached1.pid
+memcached -u $USER -p 11212 -U 11212      -d -P $PWD/memcached2.pid
+memcached -u $USER -s $PWD/memcached.sock -d -P $PWD/memcached3.pid
 
 : Upstream test suite for NTS extension
 ret=0
@@ -216,6 +216,7 @@ REPORT_EXIT_STATUS=1 \
 if [ -f memcached2.pid ]; then
    kill $(cat memcached?.pid)
 fi
+rm {memcached*.pid,memcached.sock}
 
 exit $ret
 %endif
@@ -253,6 +254,9 @@ fi
 
 
 %changelog
+* Wed Oct 14 2020 Kerry Vance <kerryavance@gmail.com> - 4.0.5.2-6
+- Launch memcached daemons as $USER
+
 * Wed Oct 14 2020 Carl George <carl@george.computer> - 4.0.5.2-5
 - Build require pear1's dependencies to avoid mismatched php stacks
 - Remove release from php-pecl() provides
@@ -464,7 +468,7 @@ fi
 * Sat Sep 22 2007 Remi Collet <Fedora@FamilleCollet.com> 2.2.0-1
 - new version
 - add new INI directives (hash_strategy + hash_function) to config
-- add BR on php-devel >= 4.3.11 
+- add BR on php-devel >= 4.3.11
 
 * Mon Aug 20 2007 Remi Collet <Fedora@FamilleCollet.com> 2.1.2-1
 - initial RPM
