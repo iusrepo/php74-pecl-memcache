@@ -200,9 +200,9 @@ sed -e "s:/var/run/memcached/memcached.sock:$PWD/memcached.sock:" \
     -i tests/connect.inc
 
 : Launch the daemons
-memcached -p 11211 -U 11211      -d -P $PWD/memcached1.pid
-memcached -p 11212 -U 11212      -d -P $PWD/memcached2.pid
-memcached -s $PWD/memcached.sock -d -P $PWD/memcached3.pid
+memcached -u memcached -p 11211 -U 11211      -d -P $PWD/memcached1.pid
+memcached -u memcached -p 11212 -U 11212      -d -P $PWD/memcached2.pid
+memcached -u memcached -s $PWD/memcached.sock -d -P $PWD/memcached3.pid
 
 : Upstream test suite for NTS extension
 ret=0
