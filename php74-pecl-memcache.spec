@@ -22,7 +22,7 @@
 Summary:      Extension to work with the Memcached caching daemon
 Name:         %{php}-pecl-memcache
 Version:      4.0.5.2
-Release:      4%{?dist}
+Release:      5%{?dist}
 Source0:      https://pecl.php.net/get/%{pecl_name}-%{version}%{?prever}.tgz
 License:      PHP
 Group:        Development/Languages
@@ -30,7 +30,8 @@ URL:          https://pecl.php.net/package/%{pecl_name}
 
 BuildRequires: gcc
 BuildRequires: %{php}-devel
-BuildRequires: pear1
+# build require pear1's dependencies to avoid mismatched php stacks
+BuildRequires: pear1 %{php}-cli %{php}-common %{php}-xml
 BuildRequires: zlib-devel
 %if %{with_tests}
 BuildRequires: memcached
@@ -230,8 +231,10 @@ exit $ret
 %endif
 
 
-
 %changelog
+* Wed Oct 14 2020 Carl George <carl@george.computer> - 4.0.5.2-5
+- Build require pear1's dependencies to avoid mismatched php stacks
+
 * Wed Aug 19 2020 Kerry Vance <kerryavance@gmail.com> - 4.0.5.2-4
 - Port from Fedora to IUS
 
