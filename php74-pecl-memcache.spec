@@ -40,8 +40,8 @@ BuildRequires: memcached
 Requires:     php(zend-abi) = %{php_zend_api}
 Requires:     php(api) = %{php_core_api}
 
-Provides:     php-pecl(%{pecl_name}) = %{version}-%{release}
-Provides:     php-pecl(%{pecl_name})%{?_isa} = %{version}-%{release}
+Provides:     php-pecl(%{pecl_name}) = %{version}
+Provides:     php-pecl(%{pecl_name})%{?_isa} = %{version}
 Provides:     php-%{pecl_name} = %{version}
 Provides:     php-%{pecl_name}%{?_isa} = %{version}
 
@@ -234,6 +234,7 @@ exit $ret
 %changelog
 * Wed Oct 14 2020 Carl George <carl@george.computer> - 4.0.5.2-5
 - Build require pear1's dependencies to avoid mismatched php stacks
+- Remove release from php-pecl() provides
 
 * Wed Aug 19 2020 Kerry Vance <kerryavance@gmail.com> - 4.0.5.2-4
 - Port from Fedora to IUS
