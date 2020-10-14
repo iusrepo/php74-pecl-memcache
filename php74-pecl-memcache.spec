@@ -1,4 +1,6 @@
-# Fedora spec file for php74-pecl-memcache
+# IUS spec file for php74-pecl-memcache, forked from:
+#
+# Fedora spec file for php-pecl-memcache
 #
 # Copyright (c) 2007-2020 Remi Collet
 # License: CC-BY-SA
@@ -20,7 +22,7 @@
 Summary:      Extension to work with the Memcached caching daemon
 Name:         %{php}-pecl-memcache
 Version:      4.0.5.2
-Release:      4%{?dist}
+Release:      5%{?dist}
 Source0:      https://pecl.php.net/get/%{pecl_name}-%{version}%{?prever}.tgz
 License:      PHP
 Group:        Development/Languages
@@ -28,7 +30,8 @@ URL:          https://pecl.php.net/package/%{pecl_name}
 
 BuildRequires: gcc
 BuildRequires: %{php}-devel
-BuildRequires: pear1
+# build require pear1's dependencies to avoid mismatched php stacks
+BuildRequires: pear1 %{php}-cli %{php}-common %{php}-xml
 BuildRequires: zlib-devel
 %if %{with_tests}
 BuildRequires: memcached
@@ -37,12 +40,15 @@ BuildRequires: memcached
 Requires:     php(zend-abi) = %{php_zend_api}
 Requires:     php(api) = %{php_core_api}
 
-Provides:     php-pecl(%{pecl_name}) = %{version}-%{release}
-Provides:     php-pecl(%{pecl_name})%{?_isa} = %{version}-%{release}
+Provides:     php-pecl(%{pecl_name}) = %{version}
+Provides:     php-pecl(%{pecl_name})%{?_isa} = %{version}
 Provides:     php-%{pecl_name} = %{version}
 Provides:     php-%{pecl_name}%{?_isa} = %{version}
 
-Conflicts:    php-pecl(%{pecl_name}) < %{version}-%{release}
+# safe replacement
+Provides:     php-pecl-%{pecl_name} = %{version}-%{release}
+Provides:     php-pecl-%{pecl_name}%{?_isa} = %{version}-%{release}
+Conflicts:    php-pecl-%{pecl_name} < %{version}-%{release}
 
 
 %description
@@ -57,7 +63,7 @@ Memcache can be used as a PHP session handler.
 
 
 %prep 
-%setup -c -q -n php-pecl-memcache-%{version}
+%setup -c -q
 mv %{pecl_name}-%{version} NTS
 
 # Don't install/register tests
@@ -162,7 +168,7 @@ install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
 %endif
 
 # Install XML package description
-install -Dpm 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
+install -Dpm 644 package.xml %{buildroot}%{pecl_xmldir}/%{pecl_name}.xml
 
 # Documentation
 for i in $(grep '<file .* role="doc"' package.xml | sed -e 's/^.*name="//;s/".*$//')
@@ -194,9 +200,9 @@ sed -e "s:/var/run/memcached/memcached.sock:$PWD/memcached.sock:" \
     -i tests/connect.inc
 
 : Launch the daemons
-memcached -p 11211 -U 11211      -d -P $PWD/memcached1.pid
-memcached -p 11212 -U 11212      -d -P $PWD/memcached2.pid
-memcached -s $PWD/memcached.sock -d -P $PWD/memcached3.pid
+memcached -u memcached -p 11211 -U 11211      -d -P $PWD/memcached1.pid
+memcached -u memcached -p 11212 -U 11212      -d -P $PWD/memcached2.pid
+memcached -u memcached -s $PWD/memcached.sock -d -P $PWD/memcached3.pid
 
 : Upstream test suite for NTS extension
 ret=0
@@ -215,10 +221,28 @@ exit $ret
 %endif
 
 
+%triggerin -- pear1
+if [ -x %{__pecl} ]; then
+    %{pecl_install} %{pecl_xmldir}/%{pecl_name}.xml >/dev/null || :
+fi
+
+
+%posttrans
+if [ -x %{__pecl} ]; then
+    %{pecl_install} %{pecl_xmldir}/%{pecl_name}.xml >/dev/null || :
+fi
+
+
+%postun
+if [ $1 -eq 0 -a -x %{__pecl} ]; then
+    %{pecl_uninstall} %{pecl_name} >/dev/null || :
+fi
+
+
 %files
 %license NTS/LICENSE
 %doc %{pecl_docdir}/%{pecl_name}
-%{pecl_xmldir}/%{name}.xml
+%{pecl_xmldir}/%{pecl_name}.xml
 %config(noreplace) %{php_inidir}/%{ini_name}
 %{php_extdir}/%{pecl_name}.so
 
@@ -228,8 +252,13 @@ exit $ret
 %endif
 
 
-
 %changelog
+* Wed Oct 14 2020 Carl George <carl@george.computer> - 4.0.5.2-5
+- Build require pear1's dependencies to avoid mismatched php stacks
+- Remove release from php-pecl() provides
+- Add safe replacement provides/conflicts
+- Correctly register pecl extension with the cli tool
+
 * Wed Aug 19 2020 Kerry Vance <kerryavance@gmail.com> - 4.0.5.2-4
 - Port from Fedora to IUS
 
