@@ -1,4 +1,6 @@
-# Fedora spec file for php74-pecl-memcache
+# IUS spec file for php74-pecl-memcache, forked from:
+#
+# Fedora spec file for php-pecl-memcache
 #
 # Copyright (c) 2007-2020 Remi Collet
 # License: CC-BY-SA
