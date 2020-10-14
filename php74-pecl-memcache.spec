@@ -63,7 +63,7 @@ Memcache can be used as a PHP session handler.
 
 
 %prep 
-%setup -c -q -n php-pecl-memcache-%{version}
+%setup -c -q
 mv %{pecl_name}-%{version} NTS
 
 # Don't install/register tests
