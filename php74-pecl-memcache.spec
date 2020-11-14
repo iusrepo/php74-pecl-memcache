@@ -194,6 +194,9 @@ cd NTS
 : ignore test with erratic results
 rm tests/040.phpt
 rm tests/056.phpt
+rm tests/033.phpt
+rm tests/035.phpt
+rm tests/053.phpt
 
 : Configuration for tests
 sed -e "s:/var/run/memcached/memcached.sock:$PWD/memcached.sock:" \
